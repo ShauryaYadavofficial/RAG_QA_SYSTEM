@@ -1,0 +1,36 @@
+---
+
+## Architecture Diagram (ASCII)
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│                        CLIENT (HTTP)                             │
+└────────────┬───────────────────────────────────┬────────────────┘
+             │ POST /documents                    │ POST /query
+             ▼                                    ▼
+┌────────────────────────┐          ┌─────────────────────────────┐
+│   documents router     │          │       query router          │
+│  - Extension validate  │          │  - Pydantic validate        │
+│  - Size validate       │          │  - Rate limit (20/min)      │
+│  - Rate limit (5/min)  │          └──────────────┬──────────────┘
+└─────────────┬──────────┘                         │
+              │ BackgroundTask                      │
+              ▼                                     ▼
+┌─────────────────────────┐         ┌──────────────────────────────┐
+│    ingestion service    │         │      embedder service        │
+│  1. file_parser         │         │  all-MiniLM-L6-v2 (cached)   │
+│  2. chunker (512ch)     │         └──────────────┬───────────────┘
+│  3. embedder            │                        │
+│  4. vector_store.add()  │                        ▼
+└─────────────┬───────────┘         ┌──────────────────────────────┐
+              │                     │    vector_store (FAISS)      │
+              └────────────────────►│  IndexFlatIP (cosine sim)    │
+                                    │  + metadata pickle           │
+                                    └──────────────┬───────────────┘
+                                                   │ top-k chunks
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │       llm service            │
+                                    │  GPT-3.5-turbo               │
+                                    │  system prompt + context     │
+                                    └──────────────────────────────┘
