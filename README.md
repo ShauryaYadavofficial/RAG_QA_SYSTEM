@@ -103,3 +103,14 @@ Click Execute to get your AI-generated answer based on the document!
 Chunk Size (512 chars): Chosen to fit comfortably within the all-MiniLM-L6-v2 128-token context window, preventing silent truncation while remaining large enough to hold complete thoughts.
 Similarity Thresholds: Cosine similarity is tracked via FAISS IndexFlatIP (with normalized vectors).
 Latency Tracking: End-to-end LLM generation latency is tracked and returned in every query response to monitor system performance.
+
+
+
+ALSO THE ENV file that has to be pressent in the same folder as app data and tests are. The content tof the .env file is
+
+OPENAI_API_KEY=sk-(enter your OpenAI API key here)
+OPENAI_MODEL=gpt-3.5-turbo
+CHUNK_SIZE=512
+CHUNK_OVERLAP=64
+TOP_K_RESULTS=5
+MAX_FILE_SIZE_MB=20
